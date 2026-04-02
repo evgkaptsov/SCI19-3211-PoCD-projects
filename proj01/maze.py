@@ -9,6 +9,7 @@ Created on Thu Apr  2 10:44:47 2026
 import ply.lex as lex
 import tkinter as tk
 from pyrect import Rect
+from collections import deque
 
 
 tokens = [
@@ -48,108 +49,207 @@ def t_newline(t):
     
 class MazeSDT:
     
-    def __init__(self, lexer, tkRoot):
-        self.lexer = lexer
+    WALL_COLOR = "#aaaaaa"
+    
+    def __init__(self, tkRoot):
+        self.tokens = deque()
         self.tkRoot = tkRoot
-        self.lookahead = None
         
     def nextToken(self):
-        if self.lookahead is None:    
-            self.lookahead = self.lexer.token()
-        return self.lookahead
+        return self.tokens.popleft()
     
     def putTokenBack(self, tok):
-        #print(f"lookahead = {tok}")
-        self.lookahead = tok
+        self.tokens.appendleft(tok)
         
     def match(self, tok, tokenType):
         if tok.type != tokenType:
             raise ValueError(f"Unexpected token: {tok.type} instead of {tokenType}")
-        self.lookahead = None
         
     def matchNext(self, tokenType):
         self.match(self.nextToken(), tokenType)
     
     def parse(self, input):
-        self.lexer.input(input)
+        
+        lexer = lex.lex()
+        lexer.input(input)
+        self.tokens = deque()
+        
+        for tok in lexer:
+            self.tokens.append(tok)
+        
         self.parse_Level()
             
     def parse_Level(self):
-        self.parse_Size()
-        self.parse_Room()
+        rect = self.parse_Size()
+        self.parse_Room(rect)
+        print("A level has parsed successfully.")
         
     def parse_Size(self):
         
         tok = self.nextToken()
         self.match(tok, 'SIZE')
         
+        # action
         size = int(tok.value)
         self.size = size
-        #print(f"Level size: {self.size} x {self.size}." )
         
         offset = 25
         self.canvas = tk.Canvas(self.tkRoot, width=size+2*offset, height=size+2*offset)
         self.canvas.pack()
         
-        self.rect = Rect(offset, offset, size, size)
-        
-        print(f"rect: {self.rect.left}, {self.rect.top}, {self.rect.right}, {self.rect.bottom}")
-        
+        rect = Rect(offset, offset, size, size)
+        self.canvas.config(bg="black")
         self.canvas.create_rectangle(
-            self.rect.left, 
-            self.rect.top, 
-            self.rect.right, 
-            self.rect.bottom)
+            rect.left, 
+            rect.top, 
+            rect.right, 
+            rect.bottom, fill="white", outline=MazeSDT.WALL_COLOR, width=8)
+        
+        print(f"Level size: {self.size} x {self.size}." )
+        # /action
+        
+        return rect
 
     
-    def parse_Room(self):
+    def parse_Room(self, rect):
         self.matchNext('LSQBRACKET')
-        self.parse_Room1()
+        self.parse_Room1(rect)
         
-    def parse_Room1(self):
+    def parse_Room1(self, rect):
         tok = self.nextToken()
         if tok.type == 'DIV':
-            #print("parsing Div")
-            self.parse_Div(tok)
-            self.parse_Room()
-            self.parse_Room()
+            rects = self.parse_Div(tok, rect)
+            self.parse_Room(rects[0])
+            self.parse_Room(rects[1])
         else:
             #print("parsing Doors and Objects")
             self.match(tok, 'LCBRACKET')
-            self.parse_Doors()
+            self.parse_Doors(rect)
             self.matchNext('RCBRACKET')
             self.matchNext('LCBRACKET')
-            self.parse_Objects()
+            self.parse_Objects(rect)
             self.matchNext('RCBRACKET')
 
         self.matchNext('RSQBRACKET')
         
-    def parse_Doors(self):
+    def parse_Doors(self, rect):
         tok = self.nextToken()
         if tok.type == 'DOOR':
-            self.parse_Door(tok)
-            self.parse_Doors()
+            self.parse_Door(tok, rect)
+            self.parse_Doors(rect)
         else:
             self.putTokenBack(tok)
     
-    def parse_Door(self, tok):
+    def parse_Door(self, tok, rect):
         print(f"Door: {tok.value}")
+        
+        # action
+        hw = rect.width * 0.12
+        hh = rect.height * 0.12
+        params = dict(width=8, fill="white")
+        
+        if tok.value == "l":
+            self.canvas.create_line(
+                rect.left, 
+                rect.centery - hh, 
+                rect.left, 
+                rect.centery + hh, **params)
+        elif tok.value == "r":
+            self.canvas.create_line(
+                rect.right, 
+                rect.centery - hh, 
+                rect.right, 
+                rect.centery + hh, **params)
+        elif tok.value == "t":
+            self.canvas.create_line(
+                rect.centerx - hw, 
+                rect.top, 
+                rect.centerx + hw, 
+                rect.top, **params)
+        else: # b
+            self.canvas.create_line(
+                rect.centerx - hw, 
+                rect.bottom, 
+                rect.centerx + hw, 
+                rect.bottom, **params)
+        # /action
+        
         self.match(tok, 'DOOR')
     
-    def parse_Div(self, tok):
+    def parse_Div(self, tok, rect):
         print(f"Div: {tok.value}")
+        
+        # action
+        wall_width = 4
+        if tok.value == 'v': #vert
+            hw = rect.centerx - rect.left
+            rect1 = Rect(rect.left, rect.top, hw, rect.height)
+            rect2 = Rect(rect.centerx, rect.top, hw, rect.height)
+            self.canvas.create_line(
+                rect.centerx, 
+                rect.top, 
+                rect.centerx, 
+                rect.bottom, fill=MazeSDT.WALL_COLOR, width=wall_width)
+        else: # horiz
+            hh = rect.centery - rect.top
+            rect1 = Rect(rect.left, rect.top, rect.width, hh)
+            rect2 = Rect(rect.left, rect.centery, rect.width, hh)
+            self.canvas.create_line(
+                rect.left, 
+                rect.centery, 
+                rect.right, 
+                rect.centery, fill=MazeSDT.WALL_COLOR, width=wall_width)
+        # /action
+        
         self.match(tok, 'DIV')
+        
+        return [rect1, rect2]
+        
     
-    def parse_Objects(self):
+    def parse_Objects(self, rect, n=0):
         tok = self.nextToken()
         if tok.type == 'OBJECT':
-            self.parse_Object(tok)
-            self.parse_Objects()
+            self.parse_Object(tok, rect, n)
+            self.parse_Objects(rect, n+1)
         else:
             self.putTokenBack(tok)
     
-    def parse_Object(self, tok):
+    def parse_Object(self, tok, rect, n):
         print(f"Object: {tok.value}")
+        
+        # action
+        
+        objSize = 25
+        objOffset = 10
+        obj_l = rect.left + n * objSize + (n+1) * objOffset
+        obj_t = rect.top + n * objSize + (n+1) * objOffset
+        obj_r = obj_l + objSize
+        obj_b = obj_t + objSize
+        
+        if tok.value == "coin":
+            self.canvas.create_oval(obj_l, obj_t, obj_r, obj_b, fill="yellow", outline="black")
+        elif tok.value == "enemy":
+            self.canvas.create_oval(obj_l, obj_t, obj_r, obj_b, fill="red", outline="black")
+        elif tok.value == "portal":
+            self.canvas.create_rectangle(obj_l, obj_t, obj_r, obj_b, fill="cyan", outline="black")
+        elif tok.value == "hero":
+            self.canvas.create_polygon([
+                    obj_l + 0.5 * objSize, obj_t, 
+                    obj_l + objSize, obj_b,
+                    obj_l, obj_b,
+                ], 
+                fill="green", outline="black")
+        elif tok.value == "goal":
+            self.canvas.create_polygon([
+                    obj_l, obj_t, 
+                    obj_r, 0.5 * (obj_t + obj_b),
+                    obj_l, obj_b
+                ], 
+                fill="red", outline="black")
+            self.canvas.create_line(obj_l, obj_t, obj_l, obj_b + objSize*0.5)
+            
+        # /action
+        
         self.match(tok, 'OBJECT')
     
 
@@ -157,7 +257,7 @@ class MazeSDT:
 
 def main():
     
-    input = '''600
+    levelDescription = '''500
     [v
          [h
           [{r}{coin}]
@@ -173,13 +273,12 @@ def main():
     ]
     '''
     
-    lexer = lex.lex()
-    
     
     tkRoot = tk.Tk()
+    tkRoot.title("Maze (SCI19 3211)")
     
-    maze = MazeSDT(lexer, tkRoot)
-    maze.parse(input)
+    maze = MazeSDT(tkRoot)
+    maze.parse(levelDescription)
     
     tkRoot.mainloop()
 
