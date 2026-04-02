@@ -1,9 +1,32 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Apr  2 10:44:47 2026
+Created on Thu Apr 02 10:44:47 2026
 
 @author: Dr. Evgenii Kaptsov for SCI19 3211 (Principles of Compiler Design)
+
+A syntax-directed translator for simple mazes described using the recursive division algorithm. 
+The basic grammar, along with commentary, can be found in:
+
+Kaptsov, E. I. Lecture Notes on Theory of Computation (SCI19 2113), 2025.
+Suranaree University of Technology (SUT e-Learning+), 162 pp.
+
+Initially, the following left-recursive grammar is used:
+
+Level -> Size Room
+Room -> [Div Room Room]
+Room -> [{Doors}{Objects}]
+Div -> v | h
+Doors -> Doors Door | epsilon
+Door -> l | r | t | b
+Objects -> Objects Object | epsilon
+Object -> hero | enemy | coin | portal | goal
+Size -> [0-9]+
+
+This grammar is then transformed into LL(1) form, and a corresponding parser is implemented. 
+
+This code is intended for educational purposes. It is deliberately simplified in order to improve readability and facilitate understanding for students.
 """
+
 
 # include standard PLY Lex package
 import ply.lex as lex
