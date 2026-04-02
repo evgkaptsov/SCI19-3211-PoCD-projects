@@ -22,9 +22,9 @@ Objects -> Objects Object | epsilon
 Object -> hero | enemy | coin | portal | goal
 Size -> [0-9]+
 
-This grammar is then transformed into LL(1) form, and a corresponding parser is implemented. 
+This grammar is then transformed into LL(1)-friendly form, and a corresponding parser is implemented. 
 
-This code is intended for educational purposes. It is deliberately simplified in order to improve readability and facilitate understanding for students.
+Note that this code is intended for educational purposes. It is deliberately simplified in order to improve readability and facilitate understanding for students.
 """
 
 
