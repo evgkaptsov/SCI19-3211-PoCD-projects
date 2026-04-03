@@ -104,6 +104,7 @@ class MazeStyles:
     
     VIEWPORT_OFFSET = 25
     
+    MAZE_DEFAULT_SIZE = 480
     MAZE_BG_COLOR = "#ddddbb"
     VIEWPORT_BG_COLOR = "#330000"
     WALL_COLOR = "#777777"
@@ -148,6 +149,10 @@ class MazeSDT(BasicSDT):
         
         # action
         size = int(tok.value)
+        
+        if size <=0 or size > 4086:
+            print("WARNING: The specified maze size is out of (0, 4086], so the default size will be set.")
+            size = MazeStyles.MAZE_DEFAULT_SIZE
         
         offset = MazeStyles.VIEWPORT_OFFSET
         self.canvas = tk.Canvas(self.tkRoot, width=size+2*offset, height=size+2*offset)
