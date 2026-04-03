@@ -34,7 +34,7 @@ import ply.lex as lex
 import tkinter as tk
 from pyrect import Rect
 from collections import deque
-from math import ceil
+
 
 
 tokens = [
@@ -288,9 +288,9 @@ class MazeSDT(BasicSDT):
         obj_t = rect.top + n * objSize + (n+1) * objOffset
         obj_r = obj_l + objSize
         obj_b = obj_t + objSize
-        obj_cx = (obj_l + obj_r)/2
-        obj_cy = (obj_t + obj_b)/2
-        fnt = ("Arial", ceil(objSize/2))
+        obj_cx = (obj_l + obj_r) // 2
+        obj_cy = (obj_t + obj_b) // 2
+        fnt = ("Arial", objSize // 2)
         
         match tok.value:
             case "coin":
@@ -304,7 +304,7 @@ class MazeSDT(BasicSDT):
                 self.canvas.create_text(obj_cx, obj_cy, text="@", font=fnt, fill=MazeStyles.OBJECT_OUTLINE_COLOR)
             case "hero":
                 self.canvas.create_polygon([
-                        obj_l + 0.5 * objSize, obj_t, 
+                        obj_l + objSize // 2, obj_t, 
                         obj_l + objSize, obj_b,
                         obj_l, obj_b,
                     ], 
@@ -312,11 +312,11 @@ class MazeSDT(BasicSDT):
             case "goal":
                 self.canvas.create_polygon([
                         obj_l, obj_t, 
-                        obj_r, 0.5 * (obj_t + obj_b),
+                        obj_r, (obj_t + obj_b) // 2,
                         obj_l, obj_b
                     ], 
                     fill=MazeStyles.OBJ_GOAL_COLOR, outline=outl)
-                self.canvas.create_line(obj_l, obj_t, obj_l, obj_b + objSize*0.5)
+                self.canvas.create_line(obj_l, obj_t, obj_l, obj_b + objSize // 2)
             
         # /action
         
@@ -327,20 +327,21 @@ class MazeSDT(BasicSDT):
 
 def main():
     
-    levelDescription = '''500
-    [v
-         [h
-          [{r}{coin coin coin}]
-          [{t}{hero portal}]
-         ]
+    levelDescription = '''\
+        500
         [v
-         [{}{portal}]
-         [h
-              [{l}{coin enemy coin}]
-              [{t}{enemy goal coin}]
-         ]
+             [h
+              [{r}{coin coin coin}]
+              [{t}{hero portal}]
+             ]
+            [v
+             [{}{portal}]
+             [h
+                  [{l}{coin enemy coin}]
+                  [{t}{enemy goal coin}]
+             ]
+            ]
         ]
-    ]
     '''
     
     
