@@ -36,7 +36,6 @@ from pyrect import Rect
 from collections import deque
 
 
-
 tokens = [
     'SIZE',
     'LCBRACKET',
@@ -61,78 +60,76 @@ t_OBJECT = 'hero|goal|enemy|coin|portal'
 # PLY requires a function to process errors of lexer
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])
-    t.lexer.skip(1) # move to the next lexeme
+    t.lexer.skip(1)  # move to the next lexeme
+
 
 # PLY requires a variable to know which characters to skip
-t_ignore = ' \t' # ignore spaces and tabs
+t_ignore = ' \t'  # ignore spaces and tabs
 
 # this function defines how to process new lines
+
+
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
-    
+
 
 class BasicSDT:
-    
+
     def __init__(self):
         self.tokens = deque()
-        
+
     def nextToken(self):
         return self.tokens.popleft()
-    
+
     def putTokenBack(self, tok):
         self.tokens.appendleft(tok)
-        
+
     def match(self, tok, tokenType):
         if tok.type != tokenType:
-            raise ValueError(f"Unexpected token: {tok.type} instead of {tokenType}")
-        
+            raise ValueError(f"Unexpected token: {
+                             tok.type} instead of {tokenType}")
+
     def matchNext(self, tokenType):
         self.match(self.nextToken(), tokenType)
-        
+
     def parse(self, input):
-            
+
         lexer = lex.lex()
         lexer.input(input)
-        self.tokens = deque()
-        
-        for tok in lexer:
-            self.tokens.append(tok)
-            
-            
+        self.tokens = deque([tok for tok in lexer])
+
+
 class MazeStyles:
-    
+
     VIEWPORT_OFFSET = 25
-    
+
     MAZE_DEFAULT_SIZE = 480
     MAZE_BG_COLOR = "#ddddbb"
     VIEWPORT_BG_COLOR = "#330000"
     WALL_COLOR = "#777777"
     OBJECT_OUTLINE_COLOR = "#444444"
-    
+
     INNER_WALL_WIDTH = 4
     OUTER_WALL_WIDTH = 8
     DOOR_SIZE_MULT = 0.12
-    
+
     OBJECT_SIZE = 25
     OBJECT_OFFSET = 10
-    
+
     OBJ_COIN_COLOR = "#f7d42d"
     OBJ_HERO_COLOR = "#00ff00"
     OBJ_ENEMY_COLOR = "#cc0000"
     OBJ_PORTAL_COLOR = "cyan"
     OBJ_GOAL_COLOR = "#9b1fe8"
-    
 
-    
 
 class MazeSDT(BasicSDT):
-    
-    
+
     def __init__(self, tkRoot):
         super().__init__()
         self.tkRoot = tkRoot
-        
+
     def parse(self, input):
         super().parse(input)
         self.parse_Level()
@@ -141,52 +138,31 @@ class MazeSDT(BasicSDT):
         rect = self.parse_Size()
         self.parse_Room(rect)
         print("A level has parsed successfully.")
-        
+
     def parse_Size(self):
-        
+
         tok = self.nextToken()
         self.match(tok, 'SIZE')
-        
-        # action
-        size = int(tok.value)
-        
-        if size <=0 or size > 4086:
-            print("WARNING: The specified maze size is out of (0, 4086], so the default size will be set.")
-            size = MazeStyles.MAZE_DEFAULT_SIZE
-        
-        offset = MazeStyles.VIEWPORT_OFFSET
-        self.canvas = tk.Canvas(self.tkRoot, width=size+2*offset, height=size+2*offset)
-        self.canvas.pack()
-        
-        rect = Rect(offset, offset, size, size)
-        self.canvas.config(bg=MazeStyles.VIEWPORT_BG_COLOR)
-        self.canvas.create_rectangle(
-            rect.left, 
-            rect.top, 
-            rect.right, 
-            rect.bottom, 
-            fill=MazeStyles.MAZE_BG_COLOR, 
-            outline=MazeStyles.WALL_COLOR, 
-            width=MazeStyles.OUTER_WALL_WIDTH)
-        
-        print(f"Level size: {size} x {size}." )
-        # /action
-        
+
+        # actions
+        rect = self.calcLevelRect(tok.value)
+        self.prepareCanvas(rect)
+        self.drawLevelBg(rect)
+
         return rect
 
-    
     def parse_Room(self, rect):
         self.matchNext('LSQBRACKET')
         self.parse_Room1(rect)
-        
+
     def parse_Room1(self, rect):
         tok = self.nextToken()
         if tok.type == 'DIV':
-            rects = self.parse_Div(tok, rect)
-            self.parse_Room(rects[0])
-            self.parse_Room(rects[1])
+            rect1, rect2 = self.parse_Div(tok, rect)
+            self.parse_Room(rect1)
+            self.parse_Room(rect2)
         else:
-            #print("parsing Doors and Objects")
+            # print("parsing Doors and Objects")
             self.match(tok, 'LCBRACKET')
             self.parse_Doors(rect)
             self.matchNext('RCBRACKET')
@@ -195,7 +171,7 @@ class MazeSDT(BasicSDT):
             self.matchNext('RCBRACKET')
 
         self.matchNext('RSQBRACKET')
-        
+
     def parse_Doors(self, rect):
         tok = self.nextToken()
         if tok.type == 'DOOR':
@@ -203,76 +179,33 @@ class MazeSDT(BasicSDT):
             self.parse_Doors(rect)
         else:
             self.putTokenBack(tok)
-    
+
     def parse_Door(self, tok, rect):
+
         print(f"Door: {tok.value}")
-        
+
         # action
-        hw = rect.width * MazeStyles.DOOR_SIZE_MULT
-        hh = rect.height * MazeStyles.DOOR_SIZE_MULT
-        w = 2*MazeStyles.INNER_WALL_WIDTH + 1
-        
-        params = dict(width=w, fill=MazeStyles.MAZE_BG_COLOR)
-        
-        match tok.value:
-            case "l":
-                self.canvas.create_line(
-                    rect.left, 
-                    rect.centery - hh, 
-                    rect.left, 
-                    rect.centery + hh, **params)
-            case "r":
-                self.canvas.create_line(
-                    rect.right, 
-                    rect.centery - hh, 
-                    rect.right, 
-                    rect.centery + hh, **params)
-            case "t":
-                self.canvas.create_line(
-                    rect.centerx - hw, 
-                    rect.top, 
-                    rect.centerx + hw, 
-                    rect.top, **params)
-            case "b":
-                self.canvas.create_line(
-                    rect.centerx - hw, 
-                    rect.bottom, 
-                    rect.centerx + hw, 
-                    rect.bottom, **params)
-        # /action
-        
+        self.drawDoor(rect, tok.value)
+
         self.match(tok, 'DOOR')
-    
+
     def parse_Div(self, tok, rect):
+
         print(f"Div: {tok.value}")
-        
+
         # action
-        wall_width = MazeStyles.INNER_WALL_WIDTH
-        if tok.value == 'v': #vert
-            hw = rect.centerx - rect.left
-            rect1 = Rect(rect.left, rect.top, hw, rect.height)
-            rect2 = Rect(rect.centerx, rect.top, hw, rect.height)
-            self.canvas.create_line(
-                rect.centerx, 
-                rect.top, 
-                rect.centerx, 
-                rect.bottom, fill=MazeStyles.WALL_COLOR, width=wall_width)
-        else: # horiz
-            hh = rect.centery - rect.top
-            rect1 = Rect(rect.left, rect.top, rect.width, hh)
-            rect2 = Rect(rect.left, rect.centery, rect.width, hh)
-            self.canvas.create_line(
-                rect.left, 
-                rect.centery, 
-                rect.right, 
-                rect.centery, fill=MazeStyles.WALL_COLOR, width=wall_width)
-        # /action
-        
+        match tok.value:
+            case 'v':  # vert
+                split = self.calcVSplit(rect)
+                self.drawVDiv(rect)
+            case 'h':
+                split = self.calcHSplit(rect)
+                self.drawHDiv(rect)
+
         self.match(tok, 'DIV')
-        
-        return [rect1, rect2]
-        
-    
+
+        return split
+
     def parse_Objects(self, rect, n=0):
         tok = self.nextToken()
         if tok.type == 'OBJECT':
@@ -280,12 +213,124 @@ class MazeSDT(BasicSDT):
             self.parse_Objects(rect, n+1)
         else:
             self.putTokenBack(tok)
-    
+
     def parse_Object(self, tok, rect, n):
         print(f"Object: {tok.value}")
-        
+
         # action
-        
+        self.drawObject(tok.value, rect, n)
+
+        self.match(tok, 'OBJECT')
+
+    ################################################
+    # semantic actions
+    ################################################
+
+    ##### Calculations #####
+
+    def calcVSplit(self, rect):
+        hw = rect.centerx - rect.left
+        rect1 = Rect(rect.left, rect.top, hw, rect.height)
+        rect2 = Rect(rect.centerx, rect.top, hw, rect.height)
+        return (rect1, rect2)
+
+    def calcHSplit(self, rect):
+        hh = rect.centery - rect.top
+        rect1 = Rect(rect.left, rect.top, rect.width, hh)
+        rect2 = Rect(rect.left, rect.centery, rect.width, hh)
+        return (rect1, rect2)
+
+    def calcLevelRect(self, sizeDesc):
+
+        size = int(sizeDesc)
+
+        if size <= 0 or size > 4096:
+            print(
+                "WARNING: The specified maze size is out of (0, 4096], so the default size will be set.")
+            size = MazeStyles.MAZE_DEFAULT_SIZE
+
+        print(f"Level size: {size} x {size}.")
+
+        return Rect(
+            MazeStyles.VIEWPORT_OFFSET,
+            MazeStyles.VIEWPORT_OFFSET,
+            size,
+            size
+        )
+
+    ##### Visualization #####
+
+    def prepareCanvas(self, rect):
+        self.canvas = tk.Canvas(
+            self.tkRoot,
+            width=rect.width + 2*MazeStyles.VIEWPORT_OFFSET,
+            height=rect.height + 2*MazeStyles.VIEWPORT_OFFSET
+        )
+        self.canvas.pack()
+
+    def drawVDiv(self, rect):
+        self.canvas.create_line(
+            rect.centerx,
+            rect.top,
+            rect.centerx,
+            rect.bottom,
+            fill=MazeStyles.WALL_COLOR,
+            width=MazeStyles.INNER_WALL_WIDTH)
+
+    def drawHDiv(self, rect):
+        self.canvas.create_line(
+            rect.left,
+            rect.centery,
+            rect.right,
+            rect.centery,
+            fill=MazeStyles.WALL_COLOR,
+            width=MazeStyles.INNER_WALL_WIDTH)
+
+    def drawLevelBg(self, rect):
+        self.canvas.config(bg=MazeStyles.VIEWPORT_BG_COLOR)
+        self.canvas.create_rectangle(
+            rect.left,
+            rect.top,
+            rect.right,
+            rect.bottom,
+            fill=MazeStyles.MAZE_BG_COLOR,
+            outline=MazeStyles.WALL_COLOR,
+            width=MazeStyles.OUTER_WALL_WIDTH)
+
+    def drawDoor(self, rect, doorType):
+        hw = rect.width * MazeStyles.DOOR_SIZE_MULT
+        hh = rect.height * MazeStyles.DOOR_SIZE_MULT
+        w = 2*MazeStyles.INNER_WALL_WIDTH + 1
+
+        params = dict(width=w, fill=MazeStyles.MAZE_BG_COLOR)
+
+        match doorType:
+            case "l":
+                self.canvas.create_line(
+                    rect.left,
+                    rect.centery - hh,
+                    rect.left,
+                    rect.centery + hh, **params)
+            case "r":
+                self.canvas.create_line(
+                    rect.right,
+                    rect.centery - hh,
+                    rect.right,
+                    rect.centery + hh, **params)
+            case "t":
+                self.canvas.create_line(
+                    rect.centerx - hw,
+                    rect.top,
+                    rect.centerx + hw,
+                    rect.top, **params)
+            case "b":
+                self.canvas.create_line(
+                    rect.centerx - hw,
+                    rect.bottom,
+                    rect.centerx + hw,
+                    rect.bottom, **params)
+
+    def drawObject(self, objType, rect, n):
         outl = MazeStyles.OBJECT_OUTLINE_COLOR
         objSize = MazeStyles.OBJECT_SIZE
         objOffset = MazeStyles.OBJECT_OFFSET
@@ -296,42 +341,42 @@ class MazeSDT(BasicSDT):
         obj_cx = (obj_l + obj_r) // 2
         obj_cy = (obj_t + obj_b) // 2
         fnt = ("Arial", objSize // 2)
-        
-        match tok.value:
+
+        match objType:
             case "coin":
-                self.canvas.create_oval(obj_l, obj_t, obj_r, obj_b, fill=MazeStyles.OBJ_COIN_COLOR, outline=outl)
+                self.canvas.create_oval(
+                    obj_l, obj_t, obj_r, obj_b, fill=MazeStyles.OBJ_COIN_COLOR, outline=outl)
                 self.canvas.create_text(obj_cx, obj_cy, text="$", font=fnt)
             case "enemy":
-                self.canvas.create_rectangle(obj_l, obj_t, obj_r, obj_b, fill=MazeStyles.OBJ_ENEMY_COLOR, outline=outl)
-                self.canvas.create_text(obj_cx, obj_cy, text="^^", font=fnt, fill="white")
+                self.canvas.create_rectangle(
+                    obj_l, obj_t, obj_r, obj_b, fill=MazeStyles.OBJ_ENEMY_COLOR, outline=outl)
+                self.canvas.create_text(
+                    obj_cx, obj_cy, text="^^", font=fnt, fill="white")
             case "portal":
-                self.canvas.create_oval(obj_l, obj_t, obj_r, obj_b, fill=MazeStyles.OBJ_PORTAL_COLOR, outline=outl)
-                self.canvas.create_text(obj_cx, obj_cy, text="@", font=fnt, fill=MazeStyles.OBJECT_OUTLINE_COLOR)
+                self.canvas.create_oval(
+                    obj_l, obj_t, obj_r, obj_b, fill=MazeStyles.OBJ_PORTAL_COLOR, outline=outl)
+                self.canvas.create_text(
+                    obj_cx, obj_cy, text="@", font=fnt, fill=MazeStyles.OBJECT_OUTLINE_COLOR)
             case "hero":
                 self.canvas.create_polygon([
-                        obj_l + objSize // 2, obj_t, 
-                        obj_l + objSize, obj_b,
-                        obj_l, obj_b,
-                    ], 
+                    obj_l + objSize // 2, obj_t,
+                    obj_l + objSize, obj_b,
+                    obj_l, obj_b,
+                ],
                     fill=MazeStyles.OBJ_HERO_COLOR, outline=outl)
             case "goal":
                 self.canvas.create_polygon([
-                        obj_l, obj_t, 
-                        obj_r, (obj_t + obj_b) // 2,
-                        obj_l, obj_b
-                    ], 
+                    obj_l, obj_t,
+                    obj_r, (obj_t + obj_b) // 2,
+                    obj_l, obj_b
+                ],
                     fill=MazeStyles.OBJ_GOAL_COLOR, outline=outl)
-                self.canvas.create_line(obj_l, obj_t, obj_l, obj_b + objSize // 2)
-            
-        # /action
-        
-        self.match(tok, 'OBJECT')
-    
-
+                self.canvas.create_line(
+                    obj_l, obj_t, obj_l, obj_b + objSize // 2)
 
 
 def main():
-    
+
     levelDescription = '''\
         500
         [v
@@ -348,16 +393,14 @@ def main():
             ]
         ]
     '''
-    
-    
+
     tkRoot = tk.Tk()
     tkRoot.title("Maze Renderer (SCI19 3211)")
-    
+
     maze = MazeSDT(tkRoot)
     maze.parse(levelDescription)
-    
-    tkRoot.mainloop()
 
+    tkRoot.mainloop()
 
 
 if __name__ == "__main__":
