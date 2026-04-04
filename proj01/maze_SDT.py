@@ -66,9 +66,7 @@ def t_error(t):
 # PLY requires a variable to know which characters to skip
 t_ignore = ' \t'  # ignore spaces and tabs
 
-# this function defines how to process new lines
-
-
+# the function t_newline defines how to process new lines
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
@@ -87,17 +85,15 @@ class BasicSDT:
 
     def match(self, tok, tokenType):
         if tok.type != tokenType:
-            raise ValueError(f"Unexpected token: {
-                             tok.type} instead of {tokenType}")
+            raise ValueError(f"Unexpected token: {tok.type} instead of {tokenType}")
 
     def matchNext(self, tokenType):
         self.match(self.nextToken(), tokenType)
 
     def parse(self, input):
-
         lexer = lex.lex()
         lexer.input(input)
-        self.tokens = deque([tok for tok in lexer])
+        self.tokens = deque(tok for tok in lexer)
 
 
 class MazeStyles:
