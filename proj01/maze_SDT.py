@@ -24,7 +24,8 @@ Size -> [0-9]+
 
 This grammar is then transformed into LL(1)-friendly form, and a corresponding parser is implemented. 
 
-Note that this code is intended for educational purposes. It is deliberately simplified in order to improve readability and facilitate understanding for students.
+Note that this code is intended for educational purposes. It is deliberately simplified in order to 
+improve readability and facilitate understanding for students.
 """
 
 
@@ -72,6 +73,8 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
 
 
+# this can be subclassed from our TokenStream class, 
+# but here we prefer code to be self-contained
 class BasicSDT:
 
     def __init__(self):

@@ -25,7 +25,7 @@ def dfs_postorder(node, depth=0):
         dfs_postorder(child, depth + 1)
     print('-' * depth + node.label)
         
-# DFS traversal  (postorder) with printing only terminals
+# DFS traversal  (preorder) with printing only terminals
 def dfs_term_preorder(node):    
     for child in node.children:
         dfs_term_preorder(child)
