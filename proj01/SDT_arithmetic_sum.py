@@ -58,27 +58,21 @@ class ArithmeticSumSDT:
         
     def parse_E(self):
         left_val = self.parse_T()
-        return self.parse_E1(left_val)
+        return self.parse_E_prime(left_val)
         
-    def parse_E1(self, left_val):
+    def parse_E_prime(self, left_val):
+        # epsilon
         if not self.stream:
-            # epsilon
-            return left_val
-            
-        tok = self.stream.nextToken()
-        if tok.type == 'PLUS':
-            right_val = self.parse_T()
-            val = left_val + right_val
-            return self.parse_E1(val)
-        else:
-            raise SyntaxError(f"Unexpected token: {tok}")
+            return left_val 
 
+        self.stream.matchNext('PLUS')
+        right_val = self.parse_T()
+        return self.parse_E_prime(left_val + right_val)
 
     def parse_T(self):
         if not self.stream:
             raise SyntaxError("Number expected but the stream is empty!")
-        tok = self.stream.nextToken()
-        self.stream.match(tok, 'NUM')
+        tok = self.stream.matchNext('NUM')
         return int(tok.value)
         
     

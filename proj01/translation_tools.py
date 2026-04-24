@@ -32,7 +32,9 @@ class TokenStream:
             raise SyntaxError(f"Unexpected token: {tok.type} instead of {tokenType}")
 
     def matchNext(self, tokenType):
-        self.match(self.nextToken(), tokenType)
+        tok = self.nextToken()
+        self.match(tok, tokenType)
+        return tok
 
     def parse(self, input, lexer):
         lexer.input(input)
