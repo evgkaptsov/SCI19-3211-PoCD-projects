@@ -1,1 +1,3 @@
 This repository stores programs and projects related to the study of the discipline SCI19 3211 Principles of Compiler Design taught by Dr. Evgenii Kaptsov Suranaree University of Technology, starting from the third semester of 2025/26.
+
+Please note that this code is intended for educational purposes. It is deliberately simplified in order to improve readability and facilitate understanding for students.
