@@ -4,7 +4,13 @@ Created on Fri Apr 24 19:17:41 2026
 
 @author: Dr. Evgenii Kaptsov for SCI19 3211 (Principles of Compiler Design)
 
-Some standard classess for translation
+============================================================================
+Note that this code is intended for educational purposes. It is deliberately 
+simplified in order to improve readability and facilitate understanding 
+for students.
+============================================================================
+
+Some standard utilities for translation
 """
 
 from collections import deque

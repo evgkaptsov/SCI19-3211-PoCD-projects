@@ -4,6 +4,12 @@ Created on Fri Apr 24 19:26:02 2026
 
 @author: Dr. Evgenii Kaptsov for SCI19 3211 (Principles of Compiler Design)
 
+============================================================================
+Note that this code is intended for educational purposes. It is deliberately 
+simplified in order to improve readability and facilitate understanding 
+for students.
+============================================================================
+
 A very simple recursive descent SDT example for the LL(1) summation grammar:
     
     P -> E
@@ -16,7 +22,7 @@ The annotated grammar (SDT):
     
     P -> E { P.syn = E.syn }
     E -> T E' { E'.inh = T.syn; E.syn = E'.syn }
-    E' -> + T E'1 { E'_1.inh = E'.inh + T.syn; E'.syn = E'1.syn }
+    E' -> + T E'1 { E'1.inh = E'.inh + T.syn; E'.syn = E'1.syn }
     E' -> eps { E'.syn = E'.inh }
     T -> number { T.syn = number.lexval }
     

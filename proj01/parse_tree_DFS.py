@@ -3,6 +3,13 @@
 Created on Thu Mar 26 23:05:21 2026
 
 @author: SCI19 3211 (Principles of Compiler Design)
+
+============================================================================
+Note that this code is intended for educational purposes. It is deliberately 
+simplified in order to improve readability and facilitate understanding 
+for students.
+============================================================================
+
 """
 
 eps = "epsilon"

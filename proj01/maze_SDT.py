@@ -4,6 +4,13 @@ Created on Thu Apr 02 10:44:47 2026
 
 @author: Dr. Evgenii Kaptsov for SCI19 3211 (Principles of Compiler Design)
 
+============================================================================
+Note that this code is intended for educational purposes. It is deliberately 
+simplified in order to improve readability and facilitate understanding 
+for students.
+============================================================================
+
+
 A syntax-directed translator for simple mazes described using the recursive division algorithm. 
 The basic grammar, along with commentary, can be found in:
 
@@ -23,9 +30,6 @@ Object -> hero | enemy | coin | portal | goal
 Size -> [0-9]+
 
 This grammar is then transformed into LL(1)-friendly form, and a corresponding parser is implemented. 
-
-Note that this code is intended for educational purposes. It is deliberately simplified in order to 
-improve readability and facilitate understanding for students.
 """
 
 
