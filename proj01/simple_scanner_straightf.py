@@ -2,9 +2,16 @@
 """
 Created: Mar 2026
 
-@author: SCI19 3211 (Principles of Compiler Design)
+@author: Dr. Evgenii Kaptsov for SCI19 3211 (Principles of Compiler Design)
 
-A straightforward Python implementation of a scanner for a very simple arithmetic expression language.
+============================================================================
+Note that this code is intended for educational purposes. It is deliberately 
+simplified in order to improve readability and facilitate understanding 
+for students.
+============================================================================
+
+A straightforward Python implementation of a scanner 
+for a very simple arithmetic expression language.
 """
 
 from enum import Enum

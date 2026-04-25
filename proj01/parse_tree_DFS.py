@@ -2,7 +2,7 @@
 """
 Created on Thu Mar 26 23:05:21 2026
 
-@author: SCI19 3211 (Principles of Compiler Design)
+@author: Dr. Evgenii Kaptsov for SCI19 3211 (Principles of Compiler Design)
 
 ============================================================================
 Note that this code is intended for educational purposes. It is deliberately 
@@ -10,6 +10,16 @@ simplified in order to improve readability and facilitate understanding
 for students.
 ============================================================================
 
+The program constructs a parse trees and then traverses them using the DFS 
+algorithm in two ways: printing all nodes to the console (dfs) and printing 
+only the terminal string (the leaves of the tree) to the console (dfs_term). 
+Both preorder and postorder DFS traversals are used. Two examples are provided: 
+
+1) a language of strings of the form 0^n 1^n 
+(such as 01, 0011, 000111, 00001111, etc.);
+
+2) a simple arithmetic expression language, for example, 1+2*3.
+    
 """
 
 eps = "epsilon"
@@ -32,14 +42,14 @@ def dfs_postorder(node, depth=0):
         dfs_postorder(child, depth + 1)
     print('-' * depth + node.label)
         
-# DFS traversal  (preorder) with printing only terminals
+# DFS traversal (preorder) with printing only terminals
 def dfs_term_preorder(node):    
     for child in node.children:
         dfs_term_preorder(child)
     if len(node.children) == 0 and node.label != eps:
         print(node.label, end='')
         
-# DFS traversal  (postorder) with printing only terminals
+# DFS traversal (postorder) with printing only terminals
 def dfs_term_postorder(node):    
     for child in node.children:
         dfs_term_postorder(child)

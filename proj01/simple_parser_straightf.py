@@ -1,3 +1,19 @@
+# -*- coding: utf-8 -*-
+"""
+Created: Mar 2026
+
+@author: Dr. Evgenii Kaptsov for SCI19 3211 (Principles of Compiler Design)
+
+============================================================================
+Note that this code is intended for educational purposes. It is deliberately 
+simplified in order to improve readability and facilitate understanding 
+for students.
+============================================================================
+
+A straightforward Python implementation of a parser  
+for a very simple arithmetic expression language.
+"""
+
 from enum import Enum
 
 

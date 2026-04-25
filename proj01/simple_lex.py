@@ -1,7 +1,20 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sat Mar 21 11:07:15 2026
+
+@author: Dr. Evgenii Kaptsov for SCI19 3211 (Principles of Compiler Design)
+
+============================================================================
+Note that this code is intended for educational purposes. It is deliberately 
+simplified in order to improve readability and facilitate understanding 
+for students.
+============================================================================
+
+A simple example of using PLY lex based on the example 
+from the PLY documentation.
+
 """
+
 import ply.lex as lex
 
 

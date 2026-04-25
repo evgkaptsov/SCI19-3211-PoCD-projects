@@ -2,10 +2,18 @@
 """
 Created on Tue Mar 24 13:43:09 2026
 
-@author: SCI19 3211 (Principles of Compiler Design)
+@author: Dr. Evgenii Kaptsov for SCI19 3211 (Principles of Compiler Design)
+
+============================================================================
+Note that this code is intended for educational purposes. It is deliberately 
+simplified in order to improve readability and facilitate understanding 
+for students.
+============================================================================
 
 This scanner produces tokens for a very simple programming language. 
-See extended documentation and examples at: https://www.dabeaz.com/ply/ply.html#ply_nn4
+See extended documentation and examples at: 
+https://www.dabeaz.com/ply/ply.html#ply_nn4
+
 """
 
 # include standard PLY Lex package
