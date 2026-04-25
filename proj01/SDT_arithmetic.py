@@ -66,7 +66,7 @@ class ArithmeticSDT:
     
     def __init__(self, input):
         self.stream = TokenStream()
-        self.stream.parse(input, lex.lex())
+        self.stream.load(input, lex.lex())
         
     def parse(self):
         return self.parse_P()
