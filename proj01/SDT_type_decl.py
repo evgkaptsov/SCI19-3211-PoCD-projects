@@ -68,19 +68,19 @@ def t_newline(t):
 t_ignore = ' \t'  # ignore spaces and tabs
 
 
-class DeclSDT:
+class DeclSDT(TokenStream):
 
     def __init__(self, input):
-        self.stream = TokenStream()
-        self.stream.load(input, lex.lex())
+        super().__init__()
+        self.load(input, lex.lex())
 
     def parse(self):
         self.parse_P()
 
     def parse_P(self):
-        self.stream.matchNext('{')
+        self.matchNext('{')
         self.parse_L()
-        self.stream.matchNext('}')
+        self.matchNext('}')
 
     def parse_L(self):
         if self.parse_D() or self.parse_S():
@@ -88,25 +88,25 @@ class DeclSDT:
     
     def parse_D(self):
         if self.parse_T():
-            self.stream.matchNext('ID')
-            self.stream.matchNext(';')
+            self.matchNext('ID')
+            self.matchNext(';')
             return True
         return False
     
     def parse_S(self):
-        t = self.stream.nextToken()
+        t = self.nextToken()
         if t.type == 'ID':
             self.parse_G_prime()
-            self.stream.matchNext('=')
+            self.matchNext('=')
             self.parse_E()
-            self.stream.matchNext(';')
+            self.matchNext(';')
             return True
         elif t.type == '{':
             self.parse_L()
-            self.stream.matchNext('}')
+            self.matchNext('}')
             return True
         else:
-            self.stream.pushTokenBack(t)
+            self.pushTokenBack(t)
             return False
         
     def parse_T(self):
@@ -117,74 +117,74 @@ class DeclSDT:
             return False
         
     def parse_T0(self):
-        t = self.stream.nextToken()
+        t = self.nextToken()
         if t.type == 'INT':
             return True
         elif t.type == 'FLOAT':
             return True
         elif t.type == 'REC':
-            self.stream.matchNext('{')
+            self.matchNext('{')
             self.parse_L()
-            self.stream.matchNext('}')
+            self.matchNext('}')
             return True
         else:
-            self.stream.pushTokenBack(t)
+            self.pushTokenBack(t)
             return False
         
     def parse_C(self):
-        t = self.stream.nextToken()
+        t = self.nextToken()
         if t.type == '[':
-            self.stream.matchNext('NUM')
-            self.stream.matchNext(']')
+            self.matchNext('NUM')
+            self.matchNext(']')
             self.parse_C()
         else:
-            self.stream.pushTokenBack(t)
+            self.pushTokenBack(t)
     
     def parse_E(self):
         self.parse_F()
         self.parse_E_prime()
     
     def parse_E_prime(self):
-        t = self.stream.nextToken()
+        t = self.nextToken()
         if t.type == '+':
             self.parse_F()
             self.parse_E_prime()
         else:
-            self.stream.pushTokenBack(t)
+            self.pushTokenBack(t)
     
     def parse_F(self):
         self.parse_G()
         self.parse_F_prime()
         
     def parse_F_prime(self):
-        t = self.stream.nextToken()
+        t = self.nextToken()
         if t.type == '*':
             self.parse_G()
             self.parse_F_prime()
         else:
-            self.stream.pushTokenBack(t)
+            self.pushTokenBack(t)
         
     def parse_G(self):
-        t = self.stream.nextToken()
+        t = self.nextToken()
         if t.type == 'ID':
             self.parse_G_prime()
         elif t.type == '(':
             self.parse_E()
-            self.stream.matchNext(')')
+            self.matchNext(')')
         else:
-            self.stream.match(t, 'NUM')
+            self.match(t, 'NUM')
     
     def parse_G_prime(self):
-        t = self.stream.nextToken()
+        t = self.nextToken()
         if t.type == '[':
             self.parse_E()
-            self.stream.matchNext(']')
+            self.matchNext(']')
             self.parse_G_prime()
         elif t.type == '.':
-            self.stream.matchNext('ID')
+            self.matchNext('ID')
             self.parse_G_prime()
         else:
-            self.stream.pushTokenBack(t)
+            self.pushTokenBack(t)
     
     
 
