@@ -47,5 +47,8 @@ class TokenStream:
     def match(self, tok, tokenType):
         if tok.type != tokenType:
             raise SyntaxError(f"Unexpected token: {tok.type} instead of {tokenType}")
+            
+    def raiseError(self, tok):
+        raise SyntaxError(f"Unexpected token: {tok.type}")
 
 
